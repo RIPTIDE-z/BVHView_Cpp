@@ -1,0 +1,6 @@
+# Build output directories
+/app/
+/build/
+/build-*/
+/cmake-build-*/
+/out/

@@ -1,0 +1,26 @@
+GLFW_ICON ICON "bvhview.ico"
+
+1 VERSIONINFO
+FILEVERSION     1,0,1,0
+PRODUCTVERSION  1,0,1,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "080904E4"
+    BEGIN
+      VALUE "CompanyName", "RIPTIDEz"
+      VALUE "FileDescription", "BVHView_Cpp"
+      VALUE "FileVersion", "1.0.1"
+      VALUE "InternalName", "bvhview"
+      VALUE "LegalCopyright", "Copyright (c) 2021 Daniel Holden; Copyright (c) 2026 RIPTIDEz"
+      VALUE "OriginalFilename", "bvhview.exe"
+      VALUE "ProductName", "BVHView_Cpp"
+      VALUE "ProductVersion", "1.0.1"
+    END
+  END
+
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x809, 1252
+  END
+END
