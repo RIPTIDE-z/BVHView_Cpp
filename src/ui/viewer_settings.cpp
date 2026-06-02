@@ -4,8 +4,8 @@
 #include "animation/character_data.hpp"
 #include "core/args.hpp"
 #include "core/math_utils.hpp"
-#include "render/capsule_data.hpp"
 #include "raymath.h"
+#include "render/capsule_data.hpp"
 
 namespace bvhview
 {
@@ -17,10 +17,10 @@ void RenderSettingsInit(RenderSettings* settings, int argc, char** argv)
     settings->sunLightStrength = ArgFloat(argc, argv, "sunLightStrength", 0.25f);
     settings->sunAzimuth = ArgFloat(argc, argv, "sunAzimuth", PI / 4.0f);
     settings->sunAltitude = ArgFloat(argc, argv, "sunAltitude", 0.8f);
-    settings->sunColor = ArgColor(argc, argv, "sunColor", Color{ 253, 255, 232 });
+    settings->sunColor = ArgColor(argc, argv, "sunColor", Color{253, 255, 232});
 
     settings->skyLightStrength = ArgFloat(argc, argv, "skyLightStrength", 0.15f);
-    settings->skyColor = ArgColor(argc, argv, "skyColor", Color{ 174, 183, 190 });
+    settings->skyColor = ArgColor(argc, argv, "skyColor", Color{174, 183, 190});
 
     settings->groundLightStrength = ArgFloat(argc, argv, "groundLightStrength", 0.1f);
     settings->ambientLightStrength = ArgFloat(argc, argv, "ambientLightStrength", 1.0f);
@@ -40,10 +40,6 @@ void RenderSettingsInit(RenderSettings* settings, int argc, char** argv)
     settings->drawFPS = ArgBool(argc, argv, "drawFPS", false);
     settings->drawUI = ArgBool(argc, argv, "drawUI", true);
 }
-
-
-
-
 
 void ScrubberSettingsInit(ScrubberSettings* settings, int argc, char** argv)
 {
@@ -75,13 +71,17 @@ void ScrubberSettingsRecomputeLimits(ScrubberSettings* settings, CharacterData* 
     for (int i = 0; i < characterData->count; i++)
     {
         settings->frameLimit = MaxInt(settings->frameLimit, characterData->bvhData[i].frameCount - 1);
-        settings->timeLimit = Max(settings->timeLimit, (characterData->bvhData[i].frameCount - 1) * characterData->bvhData[i].frameTime);
+        settings->timeLimit =
+            Max(settings->timeLimit, (characterData->bvhData[i].frameCount - 1) * characterData->bvhData[i].frameTime);
     }
 }
 
 void ScrubberSettingsInitMaxs(ScrubberSettings* settings, CharacterData* characterData)
 {
-    if (characterData->count == 0) { return; }
+    if (characterData->count == 0)
+    {
+        return;
+    }
 
     settings->frameMax = characterData->bvhData[characterData->active].frameCount - 1;
     settings->frameMaxSelect = settings->frameMax;
@@ -94,7 +94,10 @@ void ScrubberSettingsInitMaxs(ScrubberSettings* settings, CharacterData* charact
 
 void ScrubberSettingsClamp(ScrubberSettings* settings, CharacterData* characterData)
 {
-    if (characterData->count == 0) { return; }
+    if (characterData->count == 0)
+    {
+        return;
+    }
 
     settings->frameMax = ClampInt(settings->frameMax, 0, settings->frameLimit);
     settings->frameMaxSelect = settings->frameMax;

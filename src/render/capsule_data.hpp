@@ -49,26 +49,15 @@ void CapsuleDataInit(CapsuleData* data);
 void CapsuleDataResize(CapsuleData* data, int maxCapsuleCount);
 void CapsuleDataFree(CapsuleData* data);
 void CapsuleDataReset(CapsuleData* data);
-void CapsuleDataAppendFromTransformData(
-    CapsuleData* data,
-    TransformData* xforms,
-    float maxCapsuleRadius,
-    Color color,
-    float opacity,
-    bool ignoreEndSite);
+void CapsuleDataAppendFromTransformData(CapsuleData* data, TransformData* xforms, float maxCapsuleRadius, Color color,
+                                        float opacity, bool ignoreEndSite);
 void CapsuleDataUpdateAOLookupTable(CapsuleData* data);
 void CapsuleDataUpdateShadowLookupTable(CapsuleData* data, float coneAngle);
 void CapsuleDataUpdateAOCapsulesForGroundSegment(CapsuleData* data, Vector3 groundSegmentPosition);
 void CapsuleDataUpdateAOCapsulesForCapsule(CapsuleData* data, int capsuleIndex);
-void CapsuleDataUpdateShadowCapsulesForGroundSegment(
-    CapsuleData* data,
-    Vector3 groundSegmentPosition,
-    Vector3 lightDir,
-    float lightConeAngle);
-void CapsuleDataUpdateShadowCapsulesForCapsule(
-    CapsuleData* data,
-    int capsuleIndex,
-    Vector3 lightDir,
-    float lightConeAngle);
+void CapsuleDataUpdateShadowCapsulesForGroundSegment(CapsuleData* data, Vector3 groundSegmentPosition, Vector3 lightDir,
+                                                     float lightConeAngle);
+void CapsuleDataUpdateShadowCapsulesForCapsule(CapsuleData* data, int capsuleIndex, Vector3 lightDir,
+                                               float lightConeAngle);
 void CapsuleDataUpdateForCharacters(CapsuleData* capsuleData, CharacterData* characterData);
 }

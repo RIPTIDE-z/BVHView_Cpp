@@ -79,8 +79,14 @@ bool CharacterDataLoadFromFile(CharacterData* data, const char* path, char* errM
     std::snprintf(data->filePaths[index].data(), data->filePaths[index].size(), "%s", path);
 
     const char* filename = path;
-    while (std::strchr(filename, '/')) { filename = std::strchr(filename, '/') + 1; }
-    while (std::strchr(filename, '\\')) { filename = std::strchr(filename, '\\') + 1; }
+    while (std::strchr(filename, '/'))
+    {
+        filename = std::strchr(filename, '/') + 1;
+    }
+    while (std::strchr(filename, '\\'))
+    {
+        filename = std::strchr(filename, '\\') + 1;
+    }
     std::snprintf(data->names[index].data(), data->names[index].size(), "%s", filename);
     data->scales[index] = 1.0f;
 
@@ -105,7 +111,10 @@ bool CharacterDataLoadFromFile(CharacterData* data, const char* path, char* errM
     combo.clear();
     for (int i = 0; i < data->bvhData[index].jointCount; i++)
     {
-        if (i > 0) { combo += ';'; }
+        if (i > 0)
+        {
+            combo += ';';
+        }
         combo += data->bvhData[index].joints[i].name;
     }
 

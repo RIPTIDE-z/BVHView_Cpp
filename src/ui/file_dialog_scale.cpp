@@ -37,17 +37,15 @@ void UiClampFileDialog(GuiWindowFileDialogState* state)
 
 void UiUpdateFileDialogDrag(GuiWindowFileDialogState* state)
 {
-    if (!state->supportDrag) { return; }
+    if (!state->supportDrag)
+    {
+        return;
+    }
 
     const Vector2 mousePosition = GetMousePosition();
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
-        CheckCollisionPointRec(
-            mousePosition,
-            Rectangle{
-                state->windowBounds.x,
-                state->windowBounds.y,
-                state->windowBounds.width,
-                RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT}))
+        CheckCollisionPointRec(mousePosition, Rectangle{state->windowBounds.x, state->windowBounds.y,
+                                                        state->windowBounds.width, RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT}))
     {
         state->dragMode = true;
         state->panOffset.x = mousePosition.x - state->windowBounds.x;
@@ -60,7 +58,10 @@ void UiUpdateFileDialogDrag(GuiWindowFileDialogState* state)
         state->windowBounds.y = mousePosition.y - state->panOffset.y;
         UiClampFileDialog(state);
 
-        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) { state->dragMode = false; }
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+        {
+            state->dragMode = false;
+        }
     }
 }
 
@@ -71,7 +72,10 @@ void UiDrawFileDialogControls(GuiWindowFileDialogState* state)
     GuiWindowFileDialog(state);
     state->supportDrag = supportDrag;
 
-    if (!state->windowActive) { state->dragMode = false; }
+    if (!state->windowActive)
+    {
+        state->dragMode = false;
+    }
 }
 }
 
@@ -87,7 +91,10 @@ void UiCenterFileDialog(GuiWindowFileDialogState* state)
 
 void UiDrawFileDialog(GuiWindowFileDialogState* state)
 {
-    if (!state->windowActive) { return; }
+    if (!state->windowActive)
+    {
+        return;
+    }
 
     const float scale = UiScale();
     UiSetMouseScale(scale);
@@ -102,7 +109,5 @@ void UiDrawFileDialog(GuiWindowFileDialogState* state)
     UiClampFileDialog(state);
 }
 
-void UiShutdownFileDialog()
-{
-}
+void UiShutdownFileDialog() {}
 }

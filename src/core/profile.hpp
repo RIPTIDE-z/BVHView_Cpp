@@ -82,20 +82,22 @@ inline void ProfileTickersUpdate()
     for (std::uint32_t i = 0; i < globalProfileRecords.num; i++)
     {
         ProfileRecord* record = globalProfileRecords.records[i];
-        if (!record || !record->name) { continue; }
+        if (!record || !record->name)
+        {
+            continue;
+        }
 
         globalProfileTickers.samples[i] = record->num;
         const int sampleCount = record->num < ProfileRecordSampleMax ? record->num : ProfileRecordSampleMax;
         for (int j = 0; j < sampleCount; j++)
         {
-            const double time = static_cast<double>(
-                (record->samples[j].end.QuadPart - record->samples[j].start.QuadPart) *
-                globalProfileTickers.unitScale) /
+            const double time =
+                static_cast<double>((record->samples[j].end.QuadPart - record->samples[j].start.QuadPart) *
+                                    globalProfileTickers.unitScale) /
                 static_cast<double>(globalProfileRecords.freq.QuadPart);
             globalProfileTickers.iterations[i]++;
-            globalProfileTickers.averages[i] =
-                globalProfileTickers.alpha * globalProfileTickers.averages[i] +
-                (1.0 - globalProfileTickers.alpha) * time;
+            globalProfileTickers.averages[i] = globalProfileTickers.alpha * globalProfileTickers.averages[i] +
+                                               (1.0 - globalProfileTickers.alpha) * time;
             globalProfileTickers.times[i] =
                 globalProfileTickers.averages[i] /
                 (1.0 - std::pow(globalProfileTickers.alpha, globalProfileTickers.iterations[i]));
@@ -107,7 +109,9 @@ inline void ProfileTickersUpdate()
 }
 
 #define PROFILE_INIT() ::bvhview::ProfileRecordDataInit()
-#define PROFILE_BEGIN(NAME) static ::bvhview::ProfileRecord profileRecord##NAME; ::bvhview::ProfileRecordBegin(&profileRecord##NAME, #NAME)
+#define PROFILE_BEGIN(NAME)                                                                                            \
+    static ::bvhview::ProfileRecord profileRecord##NAME;                                                               \
+    ::bvhview::ProfileRecordBegin(&profileRecord##NAME, #NAME)
 #define PROFILE_END(NAME) ::bvhview::ProfileRecordEnd(&profileRecord##NAME)
 #define PROFILE_TICKERS_INIT() ::bvhview::ProfileTickersInit()
 #define PROFILE_TICKERS_UPDATE() ::bvhview::ProfileTickersUpdate()

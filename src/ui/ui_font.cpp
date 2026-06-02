@@ -21,7 +21,10 @@ Font LoadEmbeddedFont(const unsigned char* data, int dataSize, int atlasSize, bo
 {
     Font font = LoadFontFromMemory(".ttf", data, dataSize, atlasSize, nullptr, 0);
     *owned = (font.texture.id != 0) && (font.texture.id != GetFontDefault().texture.id);
-    if (*owned) { SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR); }
+    if (*owned)
+    {
+        SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
+    }
     return font;
 }
 }
@@ -33,14 +36,23 @@ UiFont UiFontLoad()
     const auto resourceName = reinterpret_cast<LPCWSTR>(static_cast<ULONG_PTR>(IDR_INTER_REGULAR_TTF));
     const auto resourceType = reinterpret_cast<LPCWSTR>(static_cast<ULONG_PTR>(10));
     const HRSRC resource = FindResourceW(module, resourceName, resourceType);
-    if (resource == nullptr) { return result; }
+    if (resource == nullptr)
+    {
+        return result;
+    }
 
     const HGLOBAL resourceData = LoadResource(module, resource);
-    if (resourceData == nullptr) { return result; }
+    if (resourceData == nullptr)
+    {
+        return result;
+    }
 
     const auto* data = static_cast<const unsigned char*>(LockResource(resourceData));
     const DWORD dataSize = SizeofResource(module, resource);
-    if ((data == nullptr) || (dataSize == 0)) { return result; }
+    if ((data == nullptr) || (dataSize == 0))
+    {
+        return result;
+    }
 
     result.guiFont = LoadEmbeddedFont(data, static_cast<int>(dataSize), GuiFontAtlasSize, &result.guiOwned);
     result.overlayFont = LoadEmbeddedFont(data, static_cast<int>(dataSize), OverlayFontAtlasSize, &result.overlayOwned);
@@ -51,8 +63,14 @@ UiFont UiFontLoad()
 void UiFontUnload(UiFont* font)
 {
     GuiSetFont(GetFontDefault());
-    if (font->guiOwned) { UnloadFont(font->guiFont); }
-    if (font->overlayOwned) { UnloadFont(font->overlayFont); }
+    if (font->guiOwned)
+    {
+        UnloadFont(font->guiFont);
+    }
+    if (font->overlayOwned)
+    {
+        UnloadFont(font->overlayFont);
+    }
     *font = {};
 }
 

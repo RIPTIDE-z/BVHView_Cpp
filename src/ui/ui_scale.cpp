@@ -90,13 +90,16 @@ float uiScale = 1.0f;
 
 void UiInitializeStyleDefaults()
 {
-    if (styleDefaultsInitialized) { return; }
+    if (styleDefaultsInitialized)
+    {
+        return;
+    }
 
     for (std::size_t i = 0; i < StyleMetrics.size(); i++)
     {
-        defaultStyleValues[i] = ((StyleMetrics[i].control == DEFAULT) && (StyleMetrics[i].property == TEXT_SIZE)) ?
-            GuiLogicalTextSize :
-            GuiGetStyle(StyleMetrics[i].control, StyleMetrics[i].property);
+        defaultStyleValues[i] = ((StyleMetrics[i].control == DEFAULT) && (StyleMetrics[i].property == TEXT_SIZE))
+                                    ? GuiLogicalTextSize
+                                    : GuiGetStyle(StyleMetrics[i].control, StyleMetrics[i].property);
     }
     styleDefaultsInitialized = true;
 }
@@ -134,7 +137,8 @@ void UiApplyRayguiScale()
     UiInitializeStyleDefaults();
     for (std::size_t i = 0; i < StyleMetrics.size(); i++)
     {
-        GuiSetStyle(StyleMetrics[i].control, StyleMetrics[i].property, UiScaleInt(static_cast<float>(defaultStyleValues[i])));
+        GuiSetStyle(StyleMetrics[i].control, StyleMetrics[i].property,
+                    UiScaleInt(static_cast<float>(defaultStyleValues[i])));
     }
 }
 
@@ -152,7 +156,10 @@ int UiComboBox(Rectangle bounds, const char* text, int* active)
     int itemCount = 1;
     for (const char* cursor = text; *cursor != '\0'; cursor++)
     {
-        if (*cursor == ';') { itemCount++; }
+        if (*cursor == ';')
+        {
+            itemCount++;
+        }
     }
 
     char selectorText[32];

@@ -11,7 +11,7 @@
 
 - 本次重写保留了原版 BVH 查看器的行为以及现有的 `raylib` / `raygui` 依赖设置，
   同时将原本的单文件 C 实现拆分为职责明确的模块。
-- 它为未来的独立项目 `ASCII_Anim_Viewer` 提供了一个参考基线。
+- 它为未来的独立项目 `ASCII_Anim_Viewer` 提供了一个参考。
   - 目标是支持更多基于 ASCII 的动画文件格式，例如 `SMD`。
 
 此外还增加了窗口缩放支持、`F11` 全屏切换、`1280 x 720` 最小窗口尺寸，
@@ -20,7 +20,7 @@
 ## 环境要求
 
 - Windows 系统，装有 `MinGW` 或 `MSVC`
-- `CMake` ≥ 3.22 
+- `CMake` ≥ 3.22
 - 支持 `C++17` 的编译器
 - `Git`
 
@@ -74,21 +74,20 @@ CMake 会将 raylib 与应用程序一起构建，无需单独的 raylib 构建�
 
 常用操作：
 
-| 按键                         | 功能         |
-| ---------------------------- | ------------ |
-| `Ctrl + 鼠标左键拖拽`      | 旋转摄像机   |
-| `Ctrl + 鼠标右键拖拽`      | 平移摄像机   |
-| 鼠标滚轮                     | 缩放         |
-| `H`                        | 显示/隐藏 UI |
-| `F11`                      | 切换全屏     |
+| 按键                    | 功能         |
+| ----------------------- | ------------ |
+| `Ctrl + 鼠标左键拖拽` | 旋转摄像机   |
+| `Ctrl + 鼠标右键拖拽` | 平移摄像机   |
+| 鼠标滚轮                | 缩放         |
+| `H`                   | 显示/隐藏 UI |
+| `F11`                 | 切换全屏     |
 
 ## 第三方资源
 
-英文界面内嵌了 [Inter](https://github.com/rsms/inter) 的 `Inter Regular` 字体。
+界面内嵌了 [Inter](https://github.com/rsms/inter) 的 `Inter Regular` 字体。
 字体使用 SIL Open Font License，许可证位于 `external/inter/OFL.txt`。
 
 ## 许可证
 
 MIT。本次重写基于 [orangeduck/BVHView](https://github.com/orangeduck/BVHView)，
 该项目使用 MIT 许可证发布。
-

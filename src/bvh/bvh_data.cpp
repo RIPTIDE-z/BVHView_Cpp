@@ -2,8 +2,8 @@
 
 #include "bvh/bvh_data.hpp"
 
-#include <cerrno>
 #include <cctype>
+#include <cerrno>
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
@@ -60,8 +60,7 @@ bool ParserStartsWithCaseless(const Parser* par, const char* prefix)
     const char* start = par->data + par->offset;
     while (*prefix)
     {
-        if (std::tolower(static_cast<unsigned char>(*prefix)) !=
-            std::tolower(static_cast<unsigned char>(*start)))
+        if (std::tolower(static_cast<unsigned char>(*prefix)) != std::tolower(static_cast<unsigned char>(*start)))
         {
             return false;
         }
@@ -87,7 +86,10 @@ void ParserInc(Parser* par)
 
 void ParserAdvance(Parser* par, int num)
 {
-    for (int i = 0; i < num; i++) { ParserInc(par); }
+    for (int i = 0; i < num; i++)
+    {
+        ParserInc(par);
+    }
 }
 
 const char* ParserCharName(char c)
@@ -95,13 +97,20 @@ const char* ParserCharName(char c)
     static char parserCharName[2];
     switch (c)
     {
-        case '\0': return "end of file";
-        case '\r': return "new line";
-        case '\n': return "new line";
-        case '\t': return "tab";
-        case '\v': return "vertical tab";
-        case '\b': return "backspace";
-        case '\f': return "form feed";
+        case '\0':
+            return "end of file";
+        case '\r':
+            return "new line";
+        case '\n':
+            return "new line";
+        case '\t':
+            return "tab";
+        case '\v':
+            return "vertical tab";
+        case '\b':
+            return "backspace";
+        case '\f':
+            return "form feed";
         default:
             parserCharName[0] = c;
             parserCharName[1] = '\0';
@@ -116,14 +125,7 @@ void ParserError(Parser* par, const char* format, ...)
     va_start(args, format);
     std::vsnprintf(message, sizeof(message), format, args);
     va_end(args);
-    std::snprintf(
-        par->err,
-        PARSER_ERR_MAX,
-        "%s:%i:%i: error: %s",
-        par->filename,
-        par->row,
-        par->col,
-        message);
+    std::snprintf(par->err, PARSER_ERR_MAX, "%s:%i:%i: error: %s", par->filename, par->row, par->col, message);
 }
 
 void BVHDataInit(BVHData* bvh)
@@ -145,7 +147,10 @@ int BVHDataAddJoint(BVHData* bvh)
 
 void BVHParseWhitespace(Parser* par)
 {
-    while (ParserOneOf(par, " \r\t\v")) { ParserInc(par); }
+    while (ParserOneOf(par, " \r\t\v"))
+    {
+        ParserInc(par);
+    }
 }
 
 bool BVHParseString(Parser* par, const char* string)
@@ -180,9 +185,7 @@ bool BVHParseJointName(BVHJointData* jnt, Parser* par)
 
     char buffer[256];
     int chrnum = 0;
-    while (chrnum < 255 && ParserOneOf(
-        par,
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_:-."))
+    while (chrnum < 255 && ParserOneOf(par, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_:-."))
     {
         buffer[chrnum++] = ParserPeek(par);
         ParserInc(par);
@@ -236,17 +239,32 @@ bool BVHParseInt(int* out, Parser* par)
 
 bool BVHParseJointOffset(BVHJointData* jnt, Parser* par)
 {
-    if (!BVHParseString(par, "OFFSET")) { return false; }
-    if (!BVHParseFloat(&jnt->offset.x, par)) { return false; }
-    if (!BVHParseFloat(&jnt->offset.y, par)) { return false; }
-    if (!BVHParseFloat(&jnt->offset.z, par)) { return false; }
+    if (!BVHParseString(par, "OFFSET"))
+    {
+        return false;
+    }
+    if (!BVHParseFloat(&jnt->offset.x, par))
+    {
+        return false;
+    }
+    if (!BVHParseFloat(&jnt->offset.y, par))
+    {
+        return false;
+    }
+    if (!BVHParseFloat(&jnt->offset.z, par))
+    {
+        return false;
+    }
     return BVHParseNewline(par);
 }
 
 bool BVHParseChannelEnum(char* channel, Parser* par, const char* channelName, char channelValue)
 {
     BVHParseWhitespace(par);
-    if (!BVHParseString(par, channelName)) { return false; }
+    if (!BVHParseString(par, channelName))
+    {
+        return false;
+    }
     BVHParseWhitespace(par);
     *channel = channelValue;
     return true;
@@ -263,12 +281,30 @@ bool BVHParseChannel(char* channel, Parser* par)
 
     const char axis = static_cast<char>(std::tolower(static_cast<unsigned char>(ParserPeek(par))));
     const char kind = static_cast<char>(std::tolower(static_cast<unsigned char>(ParserPeekForward(par, 1))));
-    if (axis == 'x' && kind == 'p') { return BVHParseChannelEnum(channel, par, "Xposition", CHANNEL_X_POSITION); }
-    if (axis == 'y' && kind == 'p') { return BVHParseChannelEnum(channel, par, "Yposition", CHANNEL_Y_POSITION); }
-    if (axis == 'z' && kind == 'p') { return BVHParseChannelEnum(channel, par, "Zposition", CHANNEL_Z_POSITION); }
-    if (axis == 'x' && kind == 'r') { return BVHParseChannelEnum(channel, par, "Xrotation", CHANNEL_X_ROTATION); }
-    if (axis == 'y' && kind == 'r') { return BVHParseChannelEnum(channel, par, "Yrotation", CHANNEL_Y_ROTATION); }
-    if (axis == 'z' && kind == 'r') { return BVHParseChannelEnum(channel, par, "Zrotation", CHANNEL_Z_ROTATION); }
+    if (axis == 'x' && kind == 'p')
+    {
+        return BVHParseChannelEnum(channel, par, "Xposition", CHANNEL_X_POSITION);
+    }
+    if (axis == 'y' && kind == 'p')
+    {
+        return BVHParseChannelEnum(channel, par, "Yposition", CHANNEL_Y_POSITION);
+    }
+    if (axis == 'z' && kind == 'p')
+    {
+        return BVHParseChannelEnum(channel, par, "Zposition", CHANNEL_Z_POSITION);
+    }
+    if (axis == 'x' && kind == 'r')
+    {
+        return BVHParseChannelEnum(channel, par, "Xrotation", CHANNEL_X_ROTATION);
+    }
+    if (axis == 'y' && kind == 'r')
+    {
+        return BVHParseChannelEnum(channel, par, "Yrotation", CHANNEL_Y_ROTATION);
+    }
+    if (axis == 'z' && kind == 'r')
+    {
+        return BVHParseChannelEnum(channel, par, "Zrotation", CHANNEL_Z_ROTATION);
+    }
 
     ParserError(par, "expected channel type");
     return false;
@@ -276,11 +312,20 @@ bool BVHParseChannel(char* channel, Parser* par)
 
 bool BVHParseJointChannels(BVHJointData* jnt, Parser* par)
 {
-    if (!BVHParseString(par, "CHANNELS")) { return false; }
-    if (!BVHParseInt(&jnt->channelCount, par)) { return false; }
+    if (!BVHParseString(par, "CHANNELS"))
+    {
+        return false;
+    }
+    if (!BVHParseInt(&jnt->channelCount, par))
+    {
+        return false;
+    }
     for (int i = 0; i < jnt->channelCount; i++)
     {
-        if (!BVHParseChannel(&jnt->channels[i], par)) { return false; }
+        if (!BVHParseChannel(&jnt->channels[i], par))
+        {
+            return false;
+        }
     }
     return BVHParseNewline(par);
 }
@@ -295,28 +340,79 @@ bool BVHParseJoints(BVHData* bvh, int parent, Parser* par)
 
         if (keyword == 'J')
         {
-            if (!BVHParseString(par, "JOINT")) { return false; }
-            if (!BVHParseJointName(&bvh->joints[j], par)) { return false; }
-            if (!BVHParseNewline(par)) { return false; }
-            if (!BVHParseString(par, "{")) { return false; }
-            if (!BVHParseNewline(par)) { return false; }
-            if (!BVHParseJointOffset(&bvh->joints[j], par)) { return false; }
-            if (!BVHParseJointChannels(&bvh->joints[j], par)) { return false; }
-            if (!BVHParseJoints(bvh, j, par)) { return false; }
-            if (!BVHParseString(par, "}")) { return false; }
-            if (!BVHParseNewline(par)) { return false; }
+            if (!BVHParseString(par, "JOINT"))
+            {
+                return false;
+            }
+            if (!BVHParseJointName(&bvh->joints[j], par))
+            {
+                return false;
+            }
+            if (!BVHParseNewline(par))
+            {
+                return false;
+            }
+            if (!BVHParseString(par, "{"))
+            {
+                return false;
+            }
+            if (!BVHParseNewline(par))
+            {
+                return false;
+            }
+            if (!BVHParseJointOffset(&bvh->joints[j], par))
+            {
+                return false;
+            }
+            if (!BVHParseJointChannels(&bvh->joints[j], par))
+            {
+                return false;
+            }
+            if (!BVHParseJoints(bvh, j, par))
+            {
+                return false;
+            }
+            if (!BVHParseString(par, "}"))
+            {
+                return false;
+            }
+            if (!BVHParseNewline(par))
+            {
+                return false;
+            }
         }
         else
         {
             bvh->joints[j].endSite = true;
-            if (!BVHParseString(par, "End Site")) { return false; }
+            if (!BVHParseString(par, "End Site"))
+            {
+                return false;
+            }
             bvh->joints[j].name = "End Site";
-            if (!BVHParseNewline(par)) { return false; }
-            if (!BVHParseString(par, "{")) { return false; }
-            if (!BVHParseNewline(par)) { return false; }
-            if (!BVHParseJointOffset(&bvh->joints[j], par)) { return false; }
-            if (!BVHParseString(par, "}")) { return false; }
-            if (!BVHParseNewline(par)) { return false; }
+            if (!BVHParseNewline(par))
+            {
+                return false;
+            }
+            if (!BVHParseString(par, "{"))
+            {
+                return false;
+            }
+            if (!BVHParseNewline(par))
+            {
+                return false;
+            }
+            if (!BVHParseJointOffset(&bvh->joints[j], par))
+            {
+                return false;
+            }
+            if (!BVHParseString(par, "}"))
+            {
+                return false;
+            }
+            if (!BVHParseNewline(par))
+            {
+                return false;
+            }
         }
     }
     return true;
@@ -325,7 +421,10 @@ bool BVHParseJoints(BVHData* bvh, int parent, Parser* par)
 bool BVHParseMotionData(BVHData* bvh, Parser* par)
 {
     int channelCount = 0;
-    for (int i = 0; i < bvh->jointCount; i++) { channelCount += bvh->joints[i].channelCount; }
+    for (int i = 0; i < bvh->jointCount; i++)
+    {
+        channelCount += bvh->joints[i].channelCount;
+    }
 
     bvh->channelCount = channelCount;
     bvh->motionData.resize(bvh->frameCount * channelCount);
@@ -333,38 +432,107 @@ bool BVHParseMotionData(BVHData* bvh, Parser* par)
     {
         for (int j = 0; j < channelCount; j++)
         {
-            if (!BVHParseFloat(&bvh->motionData[i * channelCount + j], par)) { return false; }
+            if (!BVHParseFloat(&bvh->motionData[i * channelCount + j], par))
+            {
+                return false;
+            }
         }
-        if (!BVHParseNewline(par)) { return false; }
+        if (!BVHParseNewline(par))
+        {
+            return false;
+        }
     }
     return true;
 }
 
 bool BVHParse(BVHData* bvh, Parser* par)
 {
-    if (!BVHParseString(par, "HIERARCHY")) { return false; }
-    if (!BVHParseNewline(par)) { return false; }
+    if (!BVHParseString(par, "HIERARCHY"))
+    {
+        return false;
+    }
+    if (!BVHParseNewline(par))
+    {
+        return false;
+    }
 
     const int j = BVHDataAddJoint(bvh);
-    if (!BVHParseString(par, "ROOT")) { return false; }
-    if (!BVHParseJointName(&bvh->joints[j], par)) { return false; }
-    if (!BVHParseNewline(par)) { return false; }
-    if (!BVHParseString(par, "{")) { return false; }
-    if (!BVHParseNewline(par)) { return false; }
-    if (!BVHParseJointOffset(&bvh->joints[j], par)) { return false; }
-    if (!BVHParseJointChannels(&bvh->joints[j], par)) { return false; }
-    if (!BVHParseJoints(bvh, j, par)) { return false; }
-    if (!BVHParseString(par, "}")) { return false; }
-    if (!BVHParseNewline(par)) { return false; }
-    if (!BVHParseString(par, "MOTION")) { return false; }
-    if (!BVHParseNewline(par)) { return false; }
-    if (!BVHParseString(par, "Frames:")) { return false; }
-    if (!BVHParseInt(&bvh->frameCount, par)) { return false; }
-    if (!BVHParseNewline(par)) { return false; }
-    if (!BVHParseString(par, "Frame Time:")) { return false; }
-    if (!BVHParseFloat(&bvh->frameTime, par)) { return false; }
-    if (!BVHParseNewline(par)) { return false; }
-    if (bvh->frameTime == 0.0f) { bvh->frameTime = 1.0f / 60.0f; }
+    if (!BVHParseString(par, "ROOT"))
+    {
+        return false;
+    }
+    if (!BVHParseJointName(&bvh->joints[j], par))
+    {
+        return false;
+    }
+    if (!BVHParseNewline(par))
+    {
+        return false;
+    }
+    if (!BVHParseString(par, "{"))
+    {
+        return false;
+    }
+    if (!BVHParseNewline(par))
+    {
+        return false;
+    }
+    if (!BVHParseJointOffset(&bvh->joints[j], par))
+    {
+        return false;
+    }
+    if (!BVHParseJointChannels(&bvh->joints[j], par))
+    {
+        return false;
+    }
+    if (!BVHParseJoints(bvh, j, par))
+    {
+        return false;
+    }
+    if (!BVHParseString(par, "}"))
+    {
+        return false;
+    }
+    if (!BVHParseNewline(par))
+    {
+        return false;
+    }
+    if (!BVHParseString(par, "MOTION"))
+    {
+        return false;
+    }
+    if (!BVHParseNewline(par))
+    {
+        return false;
+    }
+    if (!BVHParseString(par, "Frames:"))
+    {
+        return false;
+    }
+    if (!BVHParseInt(&bvh->frameCount, par))
+    {
+        return false;
+    }
+    if (!BVHParseNewline(par))
+    {
+        return false;
+    }
+    if (!BVHParseString(par, "Frame Time:"))
+    {
+        return false;
+    }
+    if (!BVHParseFloat(&bvh->frameTime, par))
+    {
+        return false;
+    }
+    if (!BVHParseNewline(par))
+    {
+        return false;
+    }
+    if (bvh->frameTime == 0.0f)
+    {
+        bvh->frameTime = 1.0f / 60.0f;
+    }
     return BVHParseMotionData(bvh, par);
 }
 

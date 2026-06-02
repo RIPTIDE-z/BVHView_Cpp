@@ -1,10 +1,10 @@
 // Draws skeleton transforms and capsule wireframes
 
 #include "render/drawing.hpp"
-#include "render/capsule_data.hpp"
-#include "render/geometry.hpp"
 #include "animation/transform_data.hpp"
 #include "raymath.h"
+#include "render/capsule_data.hpp"
+#include "render/geometry.hpp"
 
 namespace bvhview
 {
@@ -17,9 +17,9 @@ constexpr int OriginAxisSides = 8;
 
 void DrawTransform(const Vector3 position, const Quaternion rotation, const float size)
 {
-    DrawLine3D(position, Vector3Add(position, Vector3RotateByQuaternion(Vector3{ size, 0.0, 0.0 }, rotation)), RED);
-    DrawLine3D(position, Vector3Add(position, Vector3RotateByQuaternion(Vector3{ 0.0, size, 0.0 }, rotation)), GREEN);
-    DrawLine3D(position, Vector3Add(position, Vector3RotateByQuaternion(Vector3{ 0.0, 0.0, size }, rotation)), BLUE);
+    DrawLine3D(position, Vector3Add(position, Vector3RotateByQuaternion(Vector3{size, 0.0, 0.0}, rotation)), RED);
+    DrawLine3D(position, Vector3Add(position, Vector3RotateByQuaternion(Vector3{0.0, size, 0.0}, rotation)), GREEN);
+    DrawLine3D(position, Vector3Add(position, Vector3RotateByQuaternion(Vector3{0.0, 0.0, size}, rotation)), BLUE);
 }
 
 void DrawSkeleton(TransformData* xformData, bool drawEndSites, Color color, Color endSiteColor)
@@ -28,36 +28,23 @@ void DrawSkeleton(TransformData* xformData, bool drawEndSites, Color color, Colo
     {
         if (!xformData->endSite[i])
         {
-            DrawSphereWires(
-                xformData->globalPositions[i],
-                0.01f,
-                4,
-                6,
-                color);
+            DrawSphereWires(xformData->globalPositions[i], 0.01f, 4, 6, color);
         }
         else if (drawEndSites)
         {
-            DrawCubeWiresV(
-                xformData->globalPositions[i],
-                Vector3{ 0.02f, 0.02f, 0.02f },
-                endSiteColor);
+            DrawCubeWiresV(xformData->globalPositions[i], Vector3{0.02f, 0.02f, 0.02f}, endSiteColor);
         }
 
         if (xformData->parents[i] != -1)
         {
             if (!xformData->endSite[i])
             {
-                DrawLine3D(
-                    xformData->globalPositions[i],
-                    xformData->globalPositions[xformData->parents[i]],
-                    color);
+                DrawLine3D(xformData->globalPositions[i], xformData->globalPositions[xformData->parents[i]], color);
             }
             else if (drawEndSites)
             {
-                DrawLine3D(
-                    xformData->globalPositions[i],
-                    xformData->globalPositions[xformData->parents[i]],
-                    endSiteColor);
+                DrawLine3D(xformData->globalPositions[i], xformData->globalPositions[xformData->parents[i]],
+                           endSiteColor);
             }
         }
     }
@@ -69,10 +56,7 @@ void DrawTransforms(TransformData* xformData)
     {
         if (!xformData->endSite[i])
         {
-            DrawTransform(
-                xformData->globalPositions[i],
-                xformData->globalRotations[i],
-                0.1f);
+            DrawTransform(xformData->globalPositions[i], xformData->globalRotations[i], 0.1f);
         }
     }
 }
@@ -100,8 +84,11 @@ void DrawViewerOrigin()
 {
     constexpr Vector3 Origin = Vector3{0.0f, 0.01f, 0.0f};
 
-    DrawCylinderEx(Origin, Vector3{OriginAxisLength, Origin.y, 0.0f}, OriginAxisRadius, OriginAxisRadius, OriginAxisSides, RED);
-    DrawCylinderEx(Origin, Vector3{0.0f, Origin.y + OriginAxisLength, 0.0f}, OriginAxisRadius, OriginAxisRadius, OriginAxisSides, GREEN);
-    DrawCylinderEx(Origin, Vector3{0.0f, Origin.y, OriginAxisLength}, OriginAxisRadius, OriginAxisRadius, OriginAxisSides, BLUE);
+    DrawCylinderEx(Origin, Vector3{OriginAxisLength, Origin.y, 0.0f}, OriginAxisRadius, OriginAxisRadius,
+                   OriginAxisSides, RED);
+    DrawCylinderEx(Origin, Vector3{0.0f, Origin.y + OriginAxisLength, 0.0f}, OriginAxisRadius, OriginAxisRadius,
+                   OriginAxisSides, GREEN);
+    DrawCylinderEx(Origin, Vector3{0.0f, Origin.y, OriginAxisLength}, OriginAxisRadius, OriginAxisRadius,
+                   OriginAxisSides, BLUE);
 }
 }

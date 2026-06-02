@@ -49,7 +49,8 @@ void ShaderUniformsInit(ShaderUniforms* uniforms, Shader shader)
     uniforms->groundStrength = GetShaderLocation(shader, "groundStrength");
     uniforms->exposure = GetShaderLocation(shader, "exposure");
 }
-void BindViewerLookupTextures(Shader shader, const ShaderUniforms& uniforms, Texture2D aoLookupTable, Texture2D shadowLookupTable)
+void BindViewerLookupTextures(Shader shader, const ShaderUniforms& uniforms, Texture2D aoLookupTable,
+                              Texture2D shadowLookupTable)
 {
     constexpr int AoTextureSlot = 1;
     constexpr int ShadowTextureSlot = 2;

@@ -91,7 +91,7 @@ Useful controls:
 
 ## Third-party resources
 
-The English interface embeds `Inter Regular` from [Inter](https://github.com/rsms/inter).
+The interface embeds `Inter Regular` from [Inter](https://github.com/rsms/inter).
 The font is distributed under the SIL Open Font License included at
 `external/inter/OFL.txt`.
 

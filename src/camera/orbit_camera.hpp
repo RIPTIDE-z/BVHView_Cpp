@@ -18,13 +18,6 @@ struct OrbitCamera
 };
 
 void OrbitCameraInit(OrbitCamera* camera, int argc, char** argv);
-void OrbitCameraUpdate(
-    OrbitCamera* camera,
-    Vector3 target,
-    float azimuthDelta,
-    float altitudeDelta,
-    float offsetDeltaX,
-    float offsetDeltaY,
-    float mouseWheel,
-    float dt);
+void OrbitCameraUpdate(OrbitCamera* camera, Vector3 target, float azimuthDelta, float altitudeDelta, float offsetDeltaX,
+                       float offsetDeltaY, float mouseWheel, float dt);
 }

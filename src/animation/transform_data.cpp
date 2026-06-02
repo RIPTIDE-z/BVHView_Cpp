@@ -60,19 +60,22 @@ void TransformDataSampleFrame(TransformData* data, BVHData* bvh, int frame, floa
                     position.z = scale * bvh->motionData[frame * bvh->channelCount + offset++];
                     break;
                 case CHANNEL_X_ROTATION:
-                    rotation = QuaternionMultiply(rotation, QuaternionFromAxisAngle(
-                        Vector3{1, 0, 0},
-                        DEG2RAD * bvh->motionData[frame * bvh->channelCount + offset++]));
+                    rotation = QuaternionMultiply(
+                        rotation,
+                        QuaternionFromAxisAngle(Vector3{1, 0, 0},
+                                                DEG2RAD * bvh->motionData[frame * bvh->channelCount + offset++]));
                     break;
                 case CHANNEL_Y_ROTATION:
-                    rotation = QuaternionMultiply(rotation, QuaternionFromAxisAngle(
-                        Vector3{0, 1, 0},
-                        DEG2RAD * bvh->motionData[frame * bvh->channelCount + offset++]));
+                    rotation = QuaternionMultiply(
+                        rotation,
+                        QuaternionFromAxisAngle(Vector3{0, 1, 0},
+                                                DEG2RAD * bvh->motionData[frame * bvh->channelCount + offset++]));
                     break;
                 case CHANNEL_Z_ROTATION:
-                    rotation = QuaternionMultiply(rotation, QuaternionFromAxisAngle(
-                        Vector3{0, 0, 1},
-                        DEG2RAD * bvh->motionData[frame * bvh->channelCount + offset++]));
+                    rotation = QuaternionMultiply(
+                        rotation,
+                        QuaternionFromAxisAngle(Vector3{0, 0, 1},
+                                                DEG2RAD * bvh->motionData[frame * bvh->channelCount + offset++]));
                     break;
             }
         }
@@ -89,13 +92,8 @@ void TransformDataSampleFrameNearest(TransformData* data, BVHData* bvh, float ti
     TransformDataSampleFrame(data, bvh, frame, scale);
 }
 
-void TransformDataSampleFrameLinear(
-    TransformData* data,
-    TransformData* tmp0,
-    TransformData* tmp1,
-    BVHData* bvh,
-    float time,
-    float scale)
+void TransformDataSampleFrameLinear(TransformData* data, TransformData* tmp0, TransformData* tmp1, BVHData* bvh,
+                                    float time, float scale)
 {
     const float alpha = std::fmod(time / bvh->frameTime, 1.0f);
     const int frame0 = ClampInt(static_cast<int>(time / bvh->frameTime), 0, bvh->frameCount - 1);
@@ -110,15 +108,8 @@ void TransformDataSampleFrameLinear(
     }
 }
 
-void TransformDataSampleFrameCubic(
-    TransformData* data,
-    TransformData* tmp0,
-    TransformData* tmp1,
-    TransformData* tmp2,
-    TransformData* tmp3,
-    BVHData* bvh,
-    float time,
-    float scale)
+void TransformDataSampleFrameCubic(TransformData* data, TransformData* tmp0, TransformData* tmp1, TransformData* tmp2,
+                                   TransformData* tmp3, BVHData* bvh, float time, float scale)
 {
     const float alpha = std::fmod(time / bvh->frameTime, 1.0f);
     const int frame0 = ClampInt(static_cast<int>(time / bvh->frameTime) - 1, 0, bvh->frameCount - 1);
@@ -132,18 +123,10 @@ void TransformDataSampleFrameCubic(
 
     for (int i = 0; i < data->jointCount; i++)
     {
-        data->localPositions[i] = Vector3InterpolateCubic(
-            tmp0->localPositions[i],
-            tmp1->localPositions[i],
-            tmp2->localPositions[i],
-            tmp3->localPositions[i],
-            alpha);
-        data->localRotations[i] = QuaternionInterpolateCubic(
-            tmp0->localRotations[i],
-            tmp1->localRotations[i],
-            tmp2->localRotations[i],
-            tmp3->localRotations[i],
-            alpha);
+        data->localPositions[i] = Vector3InterpolateCubic(tmp0->localPositions[i], tmp1->localPositions[i],
+                                                          tmp2->localPositions[i], tmp3->localPositions[i], alpha);
+        data->localRotations[i] = QuaternionInterpolateCubic(tmp0->localRotations[i], tmp1->localRotations[i],
+                                                             tmp2->localRotations[i], tmp3->localRotations[i], alpha);
     }
 }
 
@@ -160,12 +143,10 @@ void TransformDataForwardKinematics(TransformData* data)
         }
         else
         {
-            data->globalPositions[i] = Vector3Add(
-                Vector3RotateByQuaternion(data->localPositions[i], data->globalRotations[parent]),
-                data->globalPositions[parent]);
-            data->globalRotations[i] = QuaternionMultiply(
-                data->globalRotations[parent],
-                data->localRotations[i]);
+            data->globalPositions[i] =
+                Vector3Add(Vector3RotateByQuaternion(data->localPositions[i], data->globalRotations[parent]),
+                           data->globalPositions[parent]);
+            data->globalRotations[i] = QuaternionMultiply(data->globalRotations[parent], data->localRotations[i]);
         }
     }
 }
