@@ -50,7 +50,7 @@ set(BVHVIEW_SOURCES
     bvhview.rc
 )
 
-add_executable(bvhview ${BVHVIEW_SOURCES})
+add_executable(bvhview WIN32 ${BVHVIEW_SOURCES})
 
 target_compile_features(bvhview PRIVATE cxx_std_17)
 set_target_properties(bvhview PROPERTIES
@@ -73,6 +73,7 @@ set_target_properties(bvhview PROPERTIES
 
 if(MSVC)
     target_compile_options(bvhview PRIVATE /W4)
+    target_link_options(bvhview PRIVATE /ENTRY:mainCRTStartup)
 else()
     target_compile_options(bvhview PRIVATE -Wall)
 endif()
