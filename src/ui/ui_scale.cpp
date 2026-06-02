@@ -14,6 +14,8 @@ namespace
 constexpr float ReferenceScreenWidth = 1280.0f;
 constexpr float ReferenceScreenHeight = 720.0f;
 constexpr int DefaultTextSize = 10;
+constexpr int DefaultComboButtonWidth = 32;
+constexpr int DefaultComboButtonSpacing = 2;
 
 float uiScale = 1.0f;
 }
@@ -48,10 +50,14 @@ Rectangle UiRectangle(float x, float y, float width, float height)
 void UiApplyRayguiScale()
 {
     GuiSetStyle(DEFAULT, TEXT_SIZE, UiScaleInt(DefaultTextSize));
+    GuiSetStyle(COMBOBOX, COMBO_BUTTON_WIDTH, UiScaleInt(DefaultComboButtonWidth));
+    GuiSetStyle(COMBOBOX, COMBO_BUTTON_SPACING, UiScaleInt(DefaultComboButtonSpacing));
 }
 
 void UiResetRayguiScale()
 {
     GuiSetStyle(DEFAULT, TEXT_SIZE, DefaultTextSize);
+    GuiSetStyle(COMBOBOX, COMBO_BUTTON_WIDTH, DefaultComboButtonWidth);
+    GuiSetStyle(COMBOBOX, COMBO_BUTTON_SPACING, DefaultComboButtonSpacing);
 }
 }

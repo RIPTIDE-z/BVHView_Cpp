@@ -4,3 +4,6 @@
 /build-*/
 /cmake-build-*/
 /out/
+
+# Animation files
+/anim/
