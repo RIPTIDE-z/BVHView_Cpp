@@ -7,6 +7,7 @@
 #include "render/capsule_data.hpp"
 #include "render/shader.hpp"
 #include "ui/raygui_bridge.hpp"
+#include "ui/ui_font.hpp"
 #include "ui/viewer_settings.hpp"
 
 namespace bvhview
@@ -28,6 +29,7 @@ struct ApplicationState
     ScrubberSettings scrubberSettings;
     RenderSettings renderSettings;
     GuiWindowFileDialogState fileDialogState;
+    UiFont uiFont;
     char errMsg[512];
 };
 

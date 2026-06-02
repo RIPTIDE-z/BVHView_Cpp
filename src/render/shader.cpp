@@ -2,6 +2,8 @@
 
 #include "render/shader.hpp"
 
+#include "rlgl.h"
+
 #define AO_RATIO_MAX 4.0
 #include "render/shader_source.inc"
 
@@ -46,5 +48,28 @@ void ShaderUniformsInit(ShaderUniforms* uniforms, Shader shader)
     uniforms->ambientStrength = GetShaderLocation(shader, "ambientStrength");
     uniforms->groundStrength = GetShaderLocation(shader, "groundStrength");
     uniforms->exposure = GetShaderLocation(shader, "exposure");
+}
+void BindViewerLookupTextures(Shader shader, const ShaderUniforms& uniforms, Texture2D aoLookupTable, Texture2D shadowLookupTable)
+{
+    constexpr int AoTextureSlot = 1;
+    constexpr int ShadowTextureSlot = 2;
+
+    SetShaderValue(shader, uniforms.aoLookupTable, &AoTextureSlot, SHADER_UNIFORM_INT);
+    SetShaderValue(shader, uniforms.shadowLookupTable, &ShadowTextureSlot, SHADER_UNIFORM_INT);
+
+    rlActiveTextureSlot(AoTextureSlot);
+    rlEnableTexture(aoLookupTable.id);
+    rlActiveTextureSlot(ShadowTextureSlot);
+    rlEnableTexture(shadowLookupTable.id);
+    rlActiveTextureSlot(0);
+}
+
+void UnbindViewerLookupTextures()
+{
+    rlActiveTextureSlot(1);
+    rlDisableTexture();
+    rlActiveTextureSlot(2);
+    rlDisableTexture();
+    rlActiveTextureSlot(0);
 }
 }

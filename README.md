@@ -18,7 +18,9 @@
   - The goal is to support more ASCII-based animation file types, such as `SMD`.
 
 It also adds resizable-window support, `F11` fullscreen switching, a
-`1280 x 720` minimum window size, and proportional UI scaling.
+1280 x 720 minimum window size, proportional UI scaling, native High DPI
+rendering, and an embedded Inter Regular
+font for clear English interface text.
 
 ## Requirements
 
@@ -86,6 +88,12 @@ Useful controls:
 | Mouse wheel                 | Zoom              |
 | `H`                       | Hide or show UI   |
 | `F11`                     | Toggle fullscreen |
+
+## Third-party resources
+
+The English interface embeds `Inter Regular` from [Inter](https://github.com/rsms/inter).
+The font is distributed under the SIL Open Font License included at
+`external/inter/OFL.txt`.
 
 ## License
 

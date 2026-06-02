@@ -32,8 +32,8 @@ void GuiOrbitCamera(OrbitCamera* camera, CharacterData* characterData, int argc,
     GuiLabel(UiRectangle(30, 20, 150, 20), "Ctrl + Left Click - Rotate");
     GuiLabel(UiRectangle(30, 40, 150, 20), "Ctrl + Right Click - Pan");
     GuiLabel(UiRectangle(30, 60, 150, 20), "Mouse Scroll - Zoom");
-    GuiLabel(UiRectangle(30, 80, 150, 20), TextFormat("Target: [% 5.3f % 5.3f % 5.3f]", camera->cam3d.target.x, camera->cam3d.target.y, camera->cam3d.target.z));
-    GuiLabel(UiRectangle(30, 100, 150, 20), TextFormat("Offset: [% 5.3f % 5.3f % 5.3f]", camera->offset.x, camera->offset.y, camera->offset.z));
+    GuiLabel(UiRectangle(30, 80, 225, 20), TextFormat("Target: [% 5.3f % 5.3f % 5.3f]", camera->cam3d.target.x, camera->cam3d.target.y, camera->cam3d.target.z));
+    GuiLabel(UiRectangle(30, 100, 225, 20), TextFormat("Offset: [% 5.3f % 5.3f % 5.3f]", camera->offset.x, camera->offset.y, camera->offset.z));
     GuiLabel(UiRectangle(30, 120, 150, 20), TextFormat("Azimuth: %5.3f", camera->azimuth));
     GuiLabel(UiRectangle(30, 140, 150, 20), TextFormat("Altitude: %5.3f", camera->altitude));
     GuiLabel(UiRectangle(30, 160, 150, 20), TextFormat("Distance: %5.3f", camera->distance));
@@ -51,7 +51,7 @@ void GuiOrbitCamera(OrbitCamera* camera, CharacterData* characterData, int argc,
     if (characterData->count > 0)
     {
         GuiToggle(UiRectangle(30, 210, 100, 20), "Track", &camera->track);
-        GuiComboBox(UiRectangle(30, 240, 150, 20), characterData->jointNamesCombo[characterData->active].c_str(), &camera->trackBone);
+        UiComboBox(UiRectangle(30, 240, 150, 20), characterData->jointNamesCombo[characterData->active].c_str(), &camera->trackBone);
     }
 }
 
@@ -252,7 +252,7 @@ void GuiScrubberSettings(
 
     GuiLabel(UiRectangle(screenWidth / 2 - 480, screenHeight - 80, 150, 20), TextFormat("Frame Time: %f", frameTime));
     GuiCheckBox(UiRectangle(screenWidth / 2 - 350, screenHeight - 80, 20, 20), "Snap to Frame", &settings->frameSnap);
-    GuiComboBox(UiRectangle(screenWidth / 2 - 240, screenHeight - 80, 100, 20), "Nearest;Linear;Cubic", &settings->sampleMode);
+    UiComboBox(UiRectangle(screenWidth / 2 - 240, screenHeight - 80, 100, 20), "Nearest;Linear;Cubic", &settings->sampleMode);
 
     GuiToggle(UiRectangle(screenWidth / 2 - 130, screenHeight - 80, 50, 20), "Inplace", &settings->inplace);
     GuiToggle(UiRectangle(screenWidth / 2 - 70, screenHeight - 80, 50, 20), "Loop", &settings->looping);

@@ -23,6 +23,9 @@ struct CapsuleData
     std::vector<float> capsuleHalfLengths;
     std::vector<Vector3> capsuleColors;
     std::vector<float> capsuleOpacities;
+    std::vector<Vector3> capsuleStarts;
+    std::vector<Vector3> capsuleEnds;
+    std::vector<Vector3> capsuleVectors;
     std::vector<CapsuleSort> capsuleSort;
     int aoCapsuleCount = 0;
     std::vector<Vector3> aoCapsuleStarts;
@@ -42,8 +45,6 @@ struct CapsuleData
     Vector2 shadowLookupResolution{};
 };
 
-int CapsuleSortCompareGreater(const void* lhs, const void* rhs);
-int CapsuleSortCompareLess(const void* lhs, const void* rhs);
 void CapsuleDataInit(CapsuleData* data);
 void CapsuleDataResize(CapsuleData* data, int maxCapsuleCount);
 void CapsuleDataFree(CapsuleData* data);

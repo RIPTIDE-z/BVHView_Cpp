@@ -13,4 +13,5 @@ int UiScaleInt(float value);
 Rectangle UiRectangle(float x, float y, float width, float height);
 void UiApplyRayguiScale();
 void UiResetRayguiScale();
+int UiComboBox(Rectangle bounds, const char* text, int* active);
 }

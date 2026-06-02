@@ -1,4 +1,7 @@
+#include "src/ui/resource_ids.h"
+
 GLFW_ICON ICON "bvhview.ico"
+IDR_INTER_REGULAR_TTF RCDATA "external/inter/Inter-Regular.ttf"
 
 1 VERSIONINFO
 FILEVERSION     1,0,1,0

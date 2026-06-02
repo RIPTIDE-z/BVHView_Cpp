@@ -13,6 +13,7 @@
 #include "raymath.h"
 #include "rcamera.h"
 #include "rlgl.h"
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -265,8 +266,7 @@ void ApplicationUpdate(void* voidApplicationState)
     SetShaderValue(app->shader, app->uniforms.objectOpacity, &objectOpacity, SHADER_UNIFORM_FLOAT);
     SetShaderValue(app->shader, app->uniforms.aoLookupResolution, &app->capsuleData.aoLookupResolution, SHADER_UNIFORM_VEC2);
     SetShaderValue(app->shader, app->uniforms.shadowLookupResolution, &app->capsuleData.shadowLookupResolution, SHADER_UNIFORM_VEC2);
-    SetShaderValueTexture(app->shader, app->uniforms.aoLookupTable, app->capsuleData.aoLookupTable);
-    SetShaderValueTexture(app->shader, app->uniforms.shadowLookupTable, app->capsuleData.shadowLookupTable);
+    BindViewerLookupTextures(app->shader, app->uniforms, app->capsuleData.aoLookupTable, app->capsuleData.shadowLookupTable);
 
 
 
@@ -360,10 +360,13 @@ void ApplicationUpdate(void* voidApplicationState)
         for (int i = 0; i < app->capsuleData.capsuleCount; i++)
         {
             app->capsuleData.capsuleSort[i].index = i;
-            app->capsuleData.capsuleSort[i].value = Vector3Distance(app->camera.cam3d.position, app->capsuleData.capsulePositions[i]);
+            app->capsuleData.capsuleSort[i].value = Vector3DistanceSqr(app->camera.cam3d.position, app->capsuleData.capsulePositions[i]);
         }
 
-        qsort(app->capsuleData.capsuleSort.data(), app->capsuleData.capsuleCount, sizeof(CapsuleSort), CapsuleSortCompareLess);
+        std::sort(
+            app->capsuleData.capsuleSort.begin(),
+            app->capsuleData.capsuleSort.begin() + app->capsuleData.capsuleCount,
+            [](const CapsuleSort& lhs, const CapsuleSort& rhs) { return lhs.value > rhs.value; });
 
 
 
@@ -397,9 +400,8 @@ void ApplicationUpdate(void* voidApplicationState)
 
 
 
-            Quaternion capsuleRotation = app->capsuleData.capsuleRotations[j];
-            Vector3 capsuleStart = CapsuleStart(capsulePosition, capsuleRotation, capsuleHalfLength);
-            Vector3 capsuleVector = CapsuleVector(capsulePosition, capsuleRotation, capsuleHalfLength);
+            const Vector3 capsuleStart = app->capsuleData.capsuleStarts[j];
+            const Vector3 capsuleVector = app->capsuleData.capsuleVectors[j];
 
             SetShaderValue(app->shader, app->uniforms.objectColor, &app->capsuleData.capsuleColors[j], SHADER_UNIFORM_VEC3);
             SetShaderValue(app->shader, app->uniforms.objectOpacity, &app->capsuleData.capsuleOpacities[j], SHADER_UNIFORM_FLOAT);
@@ -468,23 +470,21 @@ void ApplicationUpdate(void* voidApplicationState)
 
     if (app->renderSettings.drawGrid)
     {
-        DrawGrid(20, 1.0f);
+        DrawViewerGrid();
     }
 
-
-
-    if (app->renderSettings.drawOrigin)
-    {
-        DrawTransform(
-            Vector3{ 0.0f, 0.01f, 0.0f },
-            QuaternionIdentity(),
-            1.0f);
-    }
 
 
 
     rlDrawRenderBatchActive();
     rlDisableDepthTest();
+
+    UnbindViewerLookupTextures();
+
+    if (app->renderSettings.drawOrigin)
+    {
+        DrawViewerOrigin();
+    }
 
 
 
@@ -540,15 +540,21 @@ void ApplicationUpdate(void* voidApplicationState)
 
 
 
-        DrawText(app->errMsg, UiScaleInt(250), UiScaleInt(20), UiScaleInt(15), RED);
+        UiDrawText(app->uiFont, app->errMsg, Vector2{static_cast<float>(UiScaleInt(250)), static_cast<float>(UiScaleInt(20))}, static_cast<float>(UiScaleInt(15)), RED);
 
         if (app->characterData.count == 0)
         {
-            DrawText("Drag and Drop .bvh files to open them.",
-              app->screenWidth / 2 - UiScaleInt(300),
-              app->screenHeight / 2 - UiScaleInt(15),
-              UiScaleInt(30),
-              DARKGRAY);
+            constexpr const char* DropMessage = "Drag and Drop .bvh files to open them.";
+            const float dropMessageSize = static_cast<float>(UiScaleInt(30));
+            const Vector2 dropMessageBounds = MeasureTextEx(app->uiFont.overlayFont, DropMessage, dropMessageSize, 1.0f);
+            UiDrawText(
+                app->uiFont,
+                DropMessage,
+                Vector2{
+                    (static_cast<float>(app->screenWidth) - dropMessageBounds.x) / 2.0f,
+                    (static_cast<float>(app->screenHeight) - dropMessageBounds.y) / 2.0f},
+                dropMessageSize,
+                DARKGRAY);
         }
 
 
@@ -561,7 +567,7 @@ void ApplicationUpdate(void* voidApplicationState)
         {
             const int fps = GetFPS();
             const Color fpsColor = fps >= 30 ? LIME : fps >= 15 ? ORANGE : RED;
-            DrawText(TextFormat("%2i FPS", fps), UiScaleInt(230), UiScaleInt(10), UiScaleInt(20), fpsColor);
+            UiDrawText(app->uiFont, TextFormat("%2i FPS", fps), Vector2{static_cast<float>(UiScaleInt(230)), static_cast<float>(UiScaleInt(10))}, static_cast<float>(UiScaleInt(20)), fpsColor);
         }
 
 
@@ -626,10 +632,12 @@ void ApplicationInit(ApplicationState* app, int argc, char** argv)
     SetConfigFlags(FLAG_VSYNC_HINT);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    SetConfigFlags(FLAG_WINDOW_HIGHDPI);
     InitWindow(app->screenWidth, app->screenHeight, "BVHView");
     SetWindowMinSize(MinimumScreenWidth, MinimumScreenHeight);
     SetTargetFPS(60);
     UiUpdateScale(app->screenWidth, app->screenHeight);
+    app->uiFont = UiFontLoad();
 
     OrbitCameraInit(&app->camera, argc, argv);
     app->shader = LoadViewerShader();
@@ -681,6 +689,7 @@ void ApplicationShutdown(ApplicationState* app)
     UnloadModel(app->capsuleModel);
     UnloadModel(app->groundPlaneModel);
     UnloadShader(app->shader);
+    UiFontUnload(&app->uiFont);
     CloseWindow();
 }
 }

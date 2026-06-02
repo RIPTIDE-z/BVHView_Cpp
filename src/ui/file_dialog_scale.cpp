@@ -4,14 +4,25 @@
 
 #include "ui/ui_scale.hpp"
 
+#include "rlgl.h"
+
 #include <algorithm>
-#include <cmath>
 
 namespace bvhview
 {
 namespace
 {
-RenderTexture2D fileDialogTarget{};
+Vector2 UiMouseScale(float uiScale)
+{
+    const Vector2 dpiScale = GetWindowScaleDPI();
+    return Vector2{1.0f / (dpiScale.x * uiScale), 1.0f / (dpiScale.y * uiScale)};
+}
+
+void UiSetMouseScale(float uiScale)
+{
+    const Vector2 mouseScale = UiMouseScale(uiScale);
+    SetMouseScale(mouseScale.x, mouseScale.y);
+}
 
 void UiClampFileDialog(GuiWindowFileDialogState* state)
 {
@@ -24,14 +35,11 @@ void UiClampFileDialog(GuiWindowFileDialogState* state)
     state->windowBounds.y = std::clamp(state->windowBounds.y, 0.0f, maxY);
 }
 
-void UiUpdateFileDialogDrag(GuiWindowFileDialogState* state, float scale)
+void UiUpdateFileDialogDrag(GuiWindowFileDialogState* state)
 {
     if (!state->supportDrag) { return; }
 
-    Vector2 mousePosition = GetMousePosition();
-    mousePosition.x /= scale;
-    mousePosition.y /= scale;
-
+    const Vector2 mousePosition = GetMousePosition();
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
         CheckCollisionPointRec(
             mousePosition,
@@ -65,22 +73,6 @@ void UiDrawFileDialogControls(GuiWindowFileDialogState* state)
 
     if (!state->windowActive) { state->dragMode = false; }
 }
-
-void UiEnsureFileDialogTarget(int width, int height)
-{
-    if ((fileDialogTarget.id != 0) &&
-        ((fileDialogTarget.texture.width != width) || (fileDialogTarget.texture.height != height)))
-    {
-        UnloadRenderTexture(fileDialogTarget);
-        fileDialogTarget = {};
-    }
-
-    if (fileDialogTarget.id == 0)
-    {
-        fileDialogTarget = LoadRenderTexture(width, height);
-        SetTextureFilter(fileDialogTarget.texture, TEXTURE_FILTER_BILINEAR);
-    }
-}
 }
 
 void UiCenterFileDialog(GuiWindowFileDialogState* state)
@@ -98,46 +90,19 @@ void UiDrawFileDialog(GuiWindowFileDialogState* state)
     if (!state->windowActive) { return; }
 
     const float scale = UiScale();
-    UiUpdateFileDialogDrag(state, scale);
+    UiSetMouseScale(scale);
+    UiUpdateFileDialogDrag(state);
 
-    if (scale <= 1.0f)
-    {
-        UiDrawFileDialogControls(state);
-    }
-    else
-    {
-        const int screenWidth = GetScreenWidth();
-        const int screenHeight = GetScreenHeight();
-        const int logicalWidth = std::max(1, static_cast<int>(std::ceil(UiLogicalSize(static_cast<float>(screenWidth)))));
-        const int logicalHeight = std::max(1, static_cast<int>(std::ceil(UiLogicalSize(static_cast<float>(screenHeight)))));
+    rlPushMatrix();
+    rlScalef(scale, scale, 1.0f);
+    UiDrawFileDialogControls(state);
+    rlPopMatrix();
 
-        UiEnsureFileDialogTarget(logicalWidth, logicalHeight);
-
-        SetMouseScale(1.0f / scale, 1.0f / scale);
-        BeginTextureMode(fileDialogTarget);
-        ClearBackground(BLANK);
-        UiDrawFileDialogControls(state);
-        EndTextureMode();
-        SetMouseScale(1.0f, 1.0f);
-
-        DrawTexturePro(
-            fileDialogTarget.texture,
-            Rectangle{0.0f, 0.0f, static_cast<float>(logicalWidth), -static_cast<float>(logicalHeight)},
-            Rectangle{0.0f, 0.0f, static_cast<float>(screenWidth), static_cast<float>(screenHeight)},
-            Vector2{},
-            0.0f,
-            WHITE);
-    }
-
+    UiSetMouseScale(1.0f);
     UiClampFileDialog(state);
 }
 
 void UiShutdownFileDialog()
 {
-    if (fileDialogTarget.id != 0)
-    {
-        UnloadRenderTexture(fileDialogTarget);
-        fileDialogTarget = {};
-    }
 }
 }

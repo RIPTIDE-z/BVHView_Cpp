@@ -47,4 +47,6 @@ struct ShaderUniforms
 
 Shader LoadViewerShader();
 void ShaderUniformsInit(ShaderUniforms* uniforms, Shader shader);
+void BindViewerLookupTextures(Shader shader, const ShaderUniforms& uniforms, Texture2D aoLookupTable, Texture2D shadowLookupTable);
+void UnbindViewerLookupTextures();
 }

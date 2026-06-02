@@ -43,6 +43,7 @@ set(BVHVIEW_SOURCES
     src/render/model.cpp
     src/render/drawing.cpp
     src/ui/file_dialog_scale.cpp
+    src/ui/ui_font.cpp
     src/ui/ui_scale.cpp
     src/ui/viewer_settings.cpp
     src/ui/viewer_ui.cpp

@@ -15,7 +15,7 @@
   - 目标是支持更多基于 ASCII 的动画文件格式，例如 `SMD`。
 
 此外还增加了窗口缩放支持、`F11` 全屏切换、`1280 x 720` 最小窗口尺寸，
-以及按比例的 UI 缩放。
+以及按比例的 UI 缩放、原生 High DPI 绘制和内嵌的 Inter Regular 英文字体。
 
 ## 环境要求
 
@@ -81,6 +81,11 @@ CMake 会将 raylib 与应用程序一起构建，无需单独的 raylib 构建�
 | 鼠标滚轮                     | 缩放         |
 | `H`                        | 显示/隐藏 UI |
 | `F11`                      | 切换全屏     |
+
+## 第三方资源
+
+英文界面内嵌了 [Inter](https://github.com/rsms/inter) 的 `Inter Regular` 字体。
+字体使用 SIL Open Font License，许可证位于 `external/inter/OFL.txt`。
 
 ## 许可证
 

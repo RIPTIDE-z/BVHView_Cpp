@@ -5,24 +5,36 @@
 #include "render/geometry.hpp"
 #include "raymath.h"
 
+#include <algorithm>
 #include <cstdlib>
 
 namespace bvhview
 {
-int CapsuleSortCompareGreater(const void* lhs, const void* rhs)
+namespace
 {
-    const auto* lhsSort = static_cast<const CapsuleSort*>(lhs);
-    const auto* rhsSort = static_cast<const CapsuleSort*>(rhs);
-    return (lhsSort->value > rhsSort->value) - (lhsSort->value < rhsSort->value);
+bool DistanceGreaterThan(Vector3 lhs, Vector3 rhs, float distance)
+{
+    return Vector3DistanceSqr(lhs, rhs) > distance * distance;
 }
 
-int CapsuleSortCompareLess(const void* lhs, const void* rhs)
+bool DistanceLessThan(Vector3 lhs, Vector3 rhs, float distance)
 {
-    const auto* lhsSort = static_cast<const CapsuleSort*>(lhs);
-    const auto* rhsSort = static_cast<const CapsuleSort*>(rhs);
-    return (lhsSort->value < rhsSort->value) - (lhsSort->value > rhsSort->value);
+    return Vector3DistanceSqr(lhs, rhs) < distance * distance;
 }
 
+bool DistanceLessThanOrEqual(Vector3 lhs, Vector3 rhs, float distance)
+{
+    return Vector3DistanceSqr(lhs, rhs) <= distance * distance;
+}
+
+void SortCapsulesGreater(std::vector<CapsuleSort>* capsules, int count)
+{
+    std::sort(capsules->begin(), capsules->begin() + count, [](const CapsuleSort& lhs, const CapsuleSort& rhs)
+    {
+        return lhs.value > rhs.value;
+    });
+}
+}
 void CapsuleDataInit(CapsuleData* data)
 {
     *data = {};
@@ -62,6 +74,9 @@ void CapsuleDataResize(CapsuleData* data, int maxCapsuleCount)
     data->capsuleHalfLengths.resize(maxCapsuleCount);
     data->capsuleColors.resize(maxCapsuleCount);
     data->capsuleOpacities.resize(maxCapsuleCount);
+    data->capsuleStarts.resize(maxCapsuleCount);
+    data->capsuleEnds.resize(maxCapsuleCount);
+    data->capsuleVectors.resize(maxCapsuleCount);
     data->capsuleSort.resize(maxCapsuleCount);
     data->aoCapsuleStarts.resize(maxCapsuleCount);
     data->aoCapsuleVectors.resize(maxCapsuleCount);
@@ -151,6 +166,9 @@ void CapsuleDataAppendFromTransformData(CapsuleData* data, TransformData* xforms
         data->capsuleRadii[data->capsuleCount] = capsuleRadius;
         data->capsuleColors[data->capsuleCount] = Vector3{ color.r / 255.0f, color.g / 255.0f, color.b / 255.0f };
         data->capsuleOpacities[data->capsuleCount] = opacity;
+        data->capsuleStarts[data->capsuleCount] = CapsuleStart(capsulePosition, capsuleRotation, capsuleHalfLength);
+        data->capsuleEnds[data->capsuleCount] = CapsuleEnd(capsulePosition, capsuleRotation, capsuleHalfLength);
+        data->capsuleVectors[data->capsuleCount] = CapsuleVector(capsulePosition, capsuleRotation, capsuleHalfLength);
         data->capsuleCount++;
     }
 }
@@ -167,15 +185,14 @@ void CapsuleDataUpdateAOCapsulesForGroundSegment(CapsuleData* data, Vector3 grou
         float capsuleRadius = data->capsuleRadii[i];
 
 
-        if (Vector3Distance(groundSegmentPosition, capsulePosition) - sqrtf(2.0f) > capsuleHalfLength + AO_RATIO_MAX * capsuleRadius)
+        if (DistanceGreaterThan(groundSegmentPosition, capsulePosition, sqrtf(2.0f) + capsuleHalfLength + AO_RATIO_MAX * capsuleRadius))
         {
             continue;
         }
 
-        Quaternion capsuleRotation = data->capsuleRotations[i];
-        Vector3 capsuleStart = CapsuleStart(capsulePosition, capsuleRotation, capsuleHalfLength);
-        Vector3 capsuleEnd = CapsuleEnd(capsulePosition, capsuleRotation, capsuleHalfLength);
-        Vector3 capsuleVector = CapsuleVector(capsulePosition, capsuleRotation, capsuleHalfLength);
+        const Vector3 capsuleStart = data->capsuleStarts[i];
+        const Vector3 capsuleEnd = data->capsuleEnds[i];
+        const Vector3 capsuleVector = data->capsuleVectors[i];
 
         float capsuleTime;
         Vector3 groundPoint;
@@ -190,13 +207,13 @@ void CapsuleDataUpdateAOCapsulesForGroundSegment(CapsuleData* data, Vector3 grou
         Vector3 capsulePoint = Vector3Add(capsuleStart, Vector3Scale(capsuleVector, capsuleTime));
 
 
-        if (Vector3Distance(groundPoint, capsulePoint) > AO_RATIO_MAX * capsuleRadius)
+        if (DistanceGreaterThan(groundPoint, capsulePoint, AO_RATIO_MAX * capsuleRadius))
         {
             continue;
         }
 
 
-        float capsuleOcclusion = Vector3Distance(groundPoint, capsulePoint) < capsuleRadius ? 0.0f :
+        float capsuleOcclusion = DistanceLessThan(groundPoint, capsulePoint, capsuleRadius) ? 0.0f :
             SphereOcclusion(groundPoint, Vector3{ 0.0f, 1.0f, 0.0f }, capsulePoint, capsuleRadius);
 
         if (capsuleOcclusion < 0.99f)
@@ -206,13 +223,13 @@ void CapsuleDataUpdateAOCapsulesForGroundSegment(CapsuleData* data, Vector3 grou
         }
     }
 
-    qsort(data->aoCapsuleSort.data(), data->aoCapsuleCount, sizeof(CapsuleSort), CapsuleSortCompareGreater);
+    SortCapsulesGreater(&data->aoCapsuleSort, data->aoCapsuleCount);
 
     for (int i = 0; i < data->aoCapsuleCount; i++)
     {
         int j = data->aoCapsuleSort[i].index;
-        data->aoCapsuleStarts[i] = CapsuleStart(data->capsulePositions[j], data->capsuleRotations[j], data->capsuleHalfLengths[j]);
-        data->aoCapsuleVectors[i] = CapsuleVector(data->capsulePositions[j], data->capsuleRotations[j], data->capsuleHalfLengths[j]);
+        data->aoCapsuleStarts[i] = data->capsuleStarts[j];
+        data->aoCapsuleVectors[i] = data->capsuleVectors[j];
         data->aoCapsuleRadii[i] = data->capsuleRadii[j];
     }
 }
@@ -223,10 +240,9 @@ void CapsuleDataUpdateAOCapsulesForCapsule(CapsuleData* data, int capsuleIndex)
     Vector3 queryCapsulePosition = data->capsulePositions[capsuleIndex];
     float queryCapsuleHalfLength = data->capsuleHalfLengths[capsuleIndex];
     float queryCapsuleRadius = data->capsuleRadii[capsuleIndex];
-    Quaternion queryCapsuleRotation = data->capsuleRotations[capsuleIndex];
-    Vector3 queryCapsuleStart = CapsuleStart(queryCapsulePosition, queryCapsuleRotation, queryCapsuleHalfLength);
-    Vector3 queryCapsuleEnd = CapsuleEnd(queryCapsulePosition, queryCapsuleRotation, queryCapsuleHalfLength);
-    Vector3 queryCapsuleVector = CapsuleVector(queryCapsulePosition, queryCapsuleRotation, queryCapsuleHalfLength);
+    const Vector3 queryCapsuleStart = data->capsuleStarts[capsuleIndex];
+    const Vector3 queryCapsuleEnd = data->capsuleEnds[capsuleIndex];
+    const Vector3 queryCapsuleVector = data->capsuleVectors[capsuleIndex];
 
     data->aoCapsuleCount = 0;
 
@@ -239,16 +255,15 @@ void CapsuleDataUpdateAOCapsulesForCapsule(CapsuleData* data, int capsuleIndex)
         float capsuleHalfLength = data->capsuleHalfLengths[i];
 
 
-        if (Vector3Distance(queryCapsulePosition, capsulePosition) - queryCapsuleHalfLength - queryCapsuleRadius >
-            capsuleHalfLength + AO_RATIO_MAX * capsuleRadius)
+        if (DistanceGreaterThan(queryCapsulePosition, capsulePosition,
+            queryCapsuleHalfLength + queryCapsuleRadius + capsuleHalfLength + AO_RATIO_MAX * capsuleRadius))
         {
             continue;
         }
 
-        Quaternion capsuleRotation = data->capsuleRotations[i];
-        Vector3 capsuleStart = CapsuleStart(capsulePosition, capsuleRotation, capsuleHalfLength);
-        Vector3 capsuleEnd = CapsuleEnd(capsulePosition, capsuleRotation, capsuleHalfLength);
-        Vector3 capsuleVector = CapsuleVector(capsulePosition, capsuleRotation, capsuleHalfLength);
+        const Vector3 capsuleStart = data->capsuleStarts[i];
+        const Vector3 capsuleEnd = data->capsuleEnds[i];
+        const Vector3 capsuleVector = data->capsuleVectors[i];
 
         float capsuleTime, queryTime;
         NearestPointBetweenLineSegments(
@@ -263,7 +278,7 @@ void CapsuleDataUpdateAOCapsulesForCapsule(CapsuleData* data, int capsuleIndex)
         Vector3 queryPoint = Vector3Add(queryCapsuleStart, Vector3Scale(queryCapsuleVector, queryTime));
 
 
-        if (Vector3Distance(queryPoint, capsulePoint) - queryCapsuleRadius > AO_RATIO_MAX * capsuleRadius)
+        if (DistanceGreaterThan(queryPoint, capsulePoint, queryCapsuleRadius + AO_RATIO_MAX * capsuleRadius))
         {
             continue;
         }
@@ -271,7 +286,7 @@ void CapsuleDataUpdateAOCapsulesForCapsule(CapsuleData* data, int capsuleIndex)
 
         Vector3 surfaceNormal = Vector3Normalize(Vector3Subtract(capsulePoint, queryPoint));
         Vector3 surfacePoint = Vector3Add(queryPoint, Vector3Scale(surfaceNormal, queryCapsuleRadius));
-        float capsuleOcclusion = Vector3Distance(queryPoint, capsulePoint) <= queryCapsuleRadius + capsuleRadius ? 0.0f :
+        float capsuleOcclusion = DistanceLessThanOrEqual(queryPoint, capsulePoint, queryCapsuleRadius + capsuleRadius) ? 0.0f :
             SphereOcclusion(surfacePoint, surfaceNormal, capsulePoint, capsuleRadius);
 
         if (capsuleOcclusion < 0.99f)
@@ -281,13 +296,13 @@ void CapsuleDataUpdateAOCapsulesForCapsule(CapsuleData* data, int capsuleIndex)
         }
     }
 
-    qsort(data->aoCapsuleSort.data(), data->aoCapsuleCount, sizeof(CapsuleSort), CapsuleSortCompareGreater);
+    SortCapsulesGreater(&data->aoCapsuleSort, data->aoCapsuleCount);
 
     for (int i = 0; i < data->aoCapsuleCount; i++)
     {
         int j = data->aoCapsuleSort[i].index;
-        data->aoCapsuleStarts[i] = CapsuleStart(data->capsulePositions[j], data->capsuleRotations[j], data->capsuleHalfLengths[j]);
-        data->aoCapsuleVectors[i] = CapsuleVector(data->capsulePositions[j], data->capsuleRotations[j], data->capsuleHalfLengths[j]);
+        data->aoCapsuleStarts[i] = data->capsuleStarts[j];
+        data->aoCapsuleVectors[i] = data->capsuleVectors[j];
         data->aoCapsuleRadii[i] = data->capsuleRadii[j];
     }
 }
@@ -310,15 +325,14 @@ void CapsuleDataUpdateShadowCapsulesForGroundSegment(CapsuleData* data, Vector3 
         float maxRatio = 4.0f;
 
 
-        if (Vector3Distance(groundSegmentPosition, groundCapsuleMid) - sqrtf(2.0f) > capsuleHalfLength + maxRatio * capsuleRadius)
+        if (DistanceGreaterThan(groundSegmentPosition, groundCapsuleMid, sqrtf(2.0f) + capsuleHalfLength + maxRatio * capsuleRadius))
         {
             continue;
         }
 
-        Quaternion capsuleRotation = data->capsuleRotations[i];
-        Vector3 capsuleStart = CapsuleStart(capsulePosition, capsuleRotation, capsuleHalfLength);
-        Vector3 capsuleEnd = CapsuleEnd(capsulePosition, capsuleRotation, capsuleHalfLength);
-        Vector3 capsuleVector = CapsuleVector(capsulePosition, capsuleRotation, capsuleHalfLength);
+        const Vector3 capsuleStart = data->capsuleStarts[i];
+        const Vector3 capsuleEnd = data->capsuleEnds[i];
+        const Vector3 capsuleVector = data->capsuleVectors[i];
 
 
 
@@ -334,8 +348,8 @@ void CapsuleDataUpdateShadowCapsulesForGroundSegment(CapsuleData* data, Vector3 
         groundCapsuleEnd.z = Clamp(groundCapsuleEnd.z, groundSegmentPosition.z - 1.0f, groundSegmentPosition.z + 1.0f);
 
 
-        if (Vector3Distance(groundSegmentPosition, groundCapsuleStart) - sqrtf(2.0f) > maxRatio * capsuleRadius &&
-            Vector3Distance(groundSegmentPosition, groundCapsuleEnd) - sqrtf(2.0f) > maxRatio * capsuleRadius)
+        if (DistanceGreaterThan(groundSegmentPosition, groundCapsuleStart, sqrtf(2.0f) + maxRatio * capsuleRadius) &&
+            DistanceGreaterThan(groundSegmentPosition, groundCapsuleEnd, sqrtf(2.0f) + maxRatio * capsuleRadius))
         {
             continue;
         }
@@ -352,13 +366,13 @@ void CapsuleDataUpdateShadowCapsulesForGroundSegment(CapsuleData* data, Vector3 
         }
     }
 
-    qsort(data->shadowCapsuleSort.data(), data->shadowCapsuleCount, sizeof(CapsuleSort), CapsuleSortCompareGreater);
+    SortCapsulesGreater(&data->shadowCapsuleSort, data->shadowCapsuleCount);
 
     for (int i = 0; i < data->shadowCapsuleCount; i++)
     {
         int j = data->shadowCapsuleSort[i].index;
-        data->shadowCapsuleStarts[i] = CapsuleStart(data->capsulePositions[j], data->capsuleRotations[j], data->capsuleHalfLengths[j]);
-        data->shadowCapsuleVectors[i] = CapsuleVector(data->capsulePositions[j], data->capsuleRotations[j], data->capsuleHalfLengths[j]);
+        data->shadowCapsuleStarts[i] = data->capsuleStarts[j];
+        data->shadowCapsuleVectors[i] = data->capsuleVectors[j];
         data->shadowCapsuleRadii[i] = data->capsuleRadii[j];
     }
 }
@@ -371,10 +385,9 @@ void CapsuleDataUpdateShadowCapsulesForCapsule(CapsuleData* data, int capsuleInd
     Vector3 queryCapsulePosition = data->capsulePositions[capsuleIndex];
     float queryCapsuleHalfLength = data->capsuleHalfLengths[capsuleIndex];
     float queryCapsuleRadius = data->capsuleRadii[capsuleIndex];
-    Quaternion queryCapsuleRotation = data->capsuleRotations[capsuleIndex];
-    Vector3 queryCapsuleStart = CapsuleStart(queryCapsulePosition, queryCapsuleRotation, queryCapsuleHalfLength);
-    Vector3 queryCapsuleEnd = CapsuleEnd(queryCapsulePosition, queryCapsuleRotation, queryCapsuleHalfLength);
-    Vector3 queryCapsuleVector = CapsuleVector(queryCapsulePosition, queryCapsuleRotation, queryCapsuleHalfLength);
+    const Vector3 queryCapsuleStart = data->capsuleStarts[capsuleIndex];
+    const Vector3 queryCapsuleEnd = data->capsuleEnds[capsuleIndex];
+    const Vector3 queryCapsuleVector = data->capsuleVectors[capsuleIndex];
 
     data->shadowCapsuleCount = 0;
 
@@ -396,15 +409,14 @@ void CapsuleDataUpdateShadowCapsulesForCapsule(CapsuleData* data, int capsuleInd
         float maxRatio = 4.0f;
 
 
-        if (Vector3Distance(queryCapsulePosition, capsuleMid) - queryCapsuleHalfLength - queryCapsuleRadius > capsuleHalfLength + maxRatio * capsuleRadius)
+        if (DistanceGreaterThan(queryCapsulePosition, capsuleMid, queryCapsuleHalfLength + queryCapsuleRadius + capsuleHalfLength + maxRatio * capsuleRadius))
         {
             continue;
         }
 
-        Quaternion capsuleRotation = data->capsuleRotations[i];
-        Vector3 capsuleStart = CapsuleStart(capsulePosition, capsuleRotation, capsuleHalfLength);
-        Vector3 capsuleEnd = CapsuleEnd(capsulePosition, capsuleRotation, capsuleHalfLength);
-        Vector3 capsuleVector = CapsuleVector(capsulePosition, capsuleRotation, capsuleHalfLength);
+        const Vector3 capsuleStart = data->capsuleStarts[i];
+        const Vector3 capsuleEnd = data->capsuleEnds[i];
+        const Vector3 capsuleVector = data->capsuleVectors[i];
 
 
         float queryCapsuleTime;
@@ -421,7 +433,7 @@ void CapsuleDataUpdateShadowCapsulesForCapsule(CapsuleData* data, int capsuleInd
         Vector3 queryCapsulePoint = Vector3Add(queryCapsuleStart, Vector3Scale(queryCapsuleVector, queryCapsuleTime));
 
 
-        if (Vector3Distance(queryCapsulePoint, nearestRayPoint) - queryCapsuleRadius > capsuleHalfLength + maxRatio * capsuleRadius)
+        if (DistanceGreaterThan(queryCapsulePoint, nearestRayPoint, queryCapsuleRadius + capsuleHalfLength + maxRatio * capsuleRadius))
         {
             continue;
         }
@@ -430,7 +442,7 @@ void CapsuleDataUpdateShadowCapsulesForCapsule(CapsuleData* data, int capsuleInd
         Vector3 surfacePoint = Vector3Add(queryCapsulePoint, Vector3Scale(surfaceNormal, queryCapsuleRadius));
 
 
-        float capsuleOcclusion = Vector3Distance(queryCapsulePoint, nearestRayPoint) <= queryCapsuleRadius + capsuleRadius ? 0.0f :
+        float capsuleOcclusion = DistanceLessThanOrEqual(queryCapsulePoint, nearestRayPoint, queryCapsuleRadius + capsuleRadius) ? 0.0f :
             CapsuleDirectionalOcclusion(surfacePoint, capsuleStart, capsuleVector, capsuleRadius, lightDir, lightConeAngle);
 
         if (capsuleOcclusion < 0.99f)
@@ -440,13 +452,13 @@ void CapsuleDataUpdateShadowCapsulesForCapsule(CapsuleData* data, int capsuleInd
         }
     }
 
-    qsort(data->shadowCapsuleSort.data(), data->shadowCapsuleCount, sizeof(CapsuleSort), CapsuleSortCompareGreater);
+    SortCapsulesGreater(&data->shadowCapsuleSort, data->shadowCapsuleCount);
 
     for (int i = 0; i < data->shadowCapsuleCount; i++)
     {
         int j = data->shadowCapsuleSort[i].index;
-        data->shadowCapsuleStarts[i] = CapsuleStart(data->capsulePositions[j], data->capsuleRotations[j], data->capsuleHalfLengths[j]);
-        data->shadowCapsuleVectors[i] = CapsuleVector(data->capsulePositions[j], data->capsuleRotations[j], data->capsuleHalfLengths[j]);
+        data->shadowCapsuleStarts[i] = data->capsuleStarts[j];
+        data->shadowCapsuleVectors[i] = data->capsuleVectors[j];
         data->shadowCapsuleRadii[i] = data->capsuleRadii[j];
     }
 }
